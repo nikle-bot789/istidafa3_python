@@ -2,6 +2,9 @@ import telebot
 import aiohttp
 import asyncio
 from deep_translator import GoogleTranslator
+from keep_alive import keep_alive
+
+keep_alive()
 
 token = "7747612730:AAGYLOVFz02DyA-6LGGaH9RXl3HmxmyISHE"
 bot = telebot.TeleBot(token)
