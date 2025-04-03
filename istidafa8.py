@@ -1,63 +1,27 @@
 import subprocess
 import sys
 import re
-import psutil
-import time
-import os
-import importlib
 
-def is_valid_package(name):
-    """ التحقق مما إذا كان الاسم يبدو كمكتبة Python صالحة """
-    invalid_packages = {"__builtin__", "__future__", "builtins", "sys", "os", "re", "time", "subprocess", "psutil", "importlib"}
-    return name not in invalid_packages and not name.startswith("_")
-
-def install_missing_packages(script_path):
-    """ يقرأ مكتبات السكريبت ويثبت المفقودة منها """
-    try:
-        with open(script_path, "r", encoding="utf-8") as f:
-            code = f.read()
-    except Exception as e:
-        print(f"⚠️ خطأ أثناء قراءة الملف {script_path}: {e}")
-        return
+# دالة لتثبيت المكتبات إذا لم تكن مثبتة تلقائيًا
+def install_missing_packages():
+    with open(__file__, "r", encoding="utf-8") as f:
+        code = f.read()
 
     # البحث عن جميع المكتبات المستوردة
     imported_packages = set(re.findall(r"^\s*import\s+([a-zA-Z0-9_]+)|^\s*from\s+([a-zA-Z0-9_]+)\s+import", code, re.MULTILINE))
-
-    # تحويل النتائج إلى قائمة أسماء مكتبات وتصفية غير الصالحة
-    packages = {pkg for group in imported_packages for pkg in group if pkg and is_valid_package(pkg)}
-
+    
+    # تحويل النتائج إلى قائمة أسماء مكتبات
+    packages = {pkg for group in imported_packages for pkg in group if pkg}
+    
     for package in packages:
         try:
-            importlib.import_module(package)  # محاولة استيراد المكتبة
+            __import__(package)  # محاولة استيراد المكتبة
         except ImportError:
             print(f"⚙️ تثبيت المكتبة {package}...")
-            try:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-            except subprocess.CalledProcessError:
-                print(f"❌ فشل تثبيت المكتبة {package}")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-def monitor_running_scripts():
-    """ يراقب العمليات الجارية ويتحقق من تشغيل أي سكريبتات Python """
-    monitored_scripts = set()  # قائمة لتخزين السكريبتات التي تم التحقق منها سابقًا
-
-    while True:
-        for process in psutil.process_iter(attrs=['pid', 'name', 'cmdline']):
-            try:
-                cmdline = process.info['cmdline']
-                if cmdline and 'python' in cmdline[0].lower():
-                    for arg in cmdline[1:]:
-                        if arg.endswith(".py") and arg not in monitored_scripts:
-                            print(f"🔍 اكتشاف تشغيل السكريبت: {arg}")
-                            install_missing_packages(arg)
-                            monitored_scripts.add(arg)
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                continue
-
-        time.sleep(5)  # التحقق كل 5 ثوانٍ
-
-if __name__ == "__main__":
-    print("🚀 المراقب يعمل في الخلفية...")
-    monitor_running_scripts()
+# تثبيت المكتبات غير الموجودة
+install_missing_packages()
 import subprocess
 import os
 import asyncio
