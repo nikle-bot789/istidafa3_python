@@ -65,7 +65,9 @@ import importlib
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
+from keep_alive import keep_alive
 
+keep_alive()
 # 🔑 Configuration du bot
 TOKEN = "6331928281:AAFVw9csc-oXoz7Jwd9LoK9gumYqzQLT-mY"  # Remplace par ton token
 AUTHORIZED_ID = 1726923679  # Remplace par ton ID Telegram
