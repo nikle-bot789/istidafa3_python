@@ -1,4 +1,30 @@
 import subprocess
+import sys
+import re
+
+# دالة لتثبيت المكتبات إذا لم تكن مثبتة تلقائيًا
+def install_missing_packages():
+    with open(__file__, "r", encoding="utf-8") as f:
+        code = f.read()
+
+    # البحث عن جميع المكتبات المستوردة
+    imported_packages = set(re.findall(r"^\s*import\s+([a-zA-Z0-9_]+)|^\s*from\s+([a-zA-Z0-9_]+)\s+import", code, re.MULTILINE))
+    
+    # تحويل النتائج إلى قائمة أسماء مكتبات
+    packages = {pkg for group in imported_packages for pkg in group if pkg}
+    
+    for package in packages:
+        try:
+            __import__(package)  # محاولة استيراد المكتبة
+        except ImportError:
+            print(f"⚙️ تثبيت المكتبة {package}...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# تثبيت المكتبات غير الموجودة
+install_missing_packages()
+
+
+import subprocess
 import os
 import asyncio
 import importlib
